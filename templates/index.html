@@ -6,8 +6,120 @@
     <link rel="stylesheet" href="{{url_for('static',filename='dist/styles.css')}}">
 </head>
 
-<body>
-    <h1 class="text-3xl">OpenAI RAG DBQA</h1>
+<body class="bg-gray-100">
+    <div class="flex flex-col min-h-screen">
+        <div class="flex justify-center mt-4">
+            <h1 class="text-3xl text-center font-semibold bg-white border border-gray-300 p-2 rounded-xl w-3/5">
+                OpenAI RAG DBQA
+            </h1>
+        </div>
+        <div class="flex mt-8">
+            <div class="w-2/5 flex flex-col items-start">
+                <div class="rounded-lg border border-gray-300 bg-white p-4 w-4/5 h-fit mx-auto">
+                    <h2 class="text-2xl font-semibold">Upload Document</h2>
+                    <span class="text-lg mt-1">Select a file to get started.</span>
+                    <h3 class="text-lg font-semibold mt-2">Select File</h3>
+                    <form id="upload-form" class="flex flex-col">
+                        <input type="file" id="file-input" name="pdf" accept="application/pdf" required
+                            class="mt-2 p-2 rounded-lg border border-gray-300 bg-gray-100 cursor-pointer">
+                        <input type="submit" value="Upload and Process"
+                            class="mt-4 p-2 rounded-lg border bg-blue-500 hover:bg-blue-400 text-white cursor-pointer">
+                    </form>
+                </div>
+                <div class="rounded-lg border border-gray-300 bg-white p-4 w-4/5 h-fit mx-auto mt-8">
+                    <h2 class="text-2xl font-semibold">Upload Status</h2>
+                    <span id="upload-status-text" class="text-lg mt-2">No file uploaded.</span>
+                </div>
+                <script>
+                    const uploadForm = document.getElementById("upload-form");
+                    const fileInput = document.getElementById("file-input");
+                    const uploadStatusText = document.getElementById("upload-status-text");
+
+                    uploadForm.addEventListener("submit", async (e) => {
+                        e.preventDefault();
+
+                        const file = fileInput.files[0];
+                        if (!file) {
+                            uploadStatusText.innerText = "Please select a file to upload.";
+                            return;
+                        }
+                        uploadStatusText.innerText = `Uploading "${file.name}"...`;
+
+                        const formData = new FormData();
+                        formData.append("pdf", file);
+
+                        try {
+                            const response = await fetch("/upload", {
+                                method: "POST",
+                                body: formData
+                            });
+                            const payload = await response.json();
+
+                            if (payload.success) {
+                                uploadStatusText.innerText = `“${file.name}” uploaded successfully.`;
+                            }
+                            else {
+                                uploadStatusText.innerText = `Upload failed: ${payload.error}`;
+                            }
+                        }
+                        catch (err) {
+                            uploadStatusText.innerText = `Upload failed: ${err.message}`;
+                        }
+                    });
+                </script>
+            </div>
+
+            <div class="w-3/5">
+                <div class="rounded-lg border border-gray-300 bg-white p-4 w-4/5 flex flex-col">
+                    <h2 class="text-2xl font-semibold">Submit a Question</h2>
+                    <div class="w-full justify-center flex mt-4">
+                        <form id="ask-form" class="flex flex-col w-full">
+                            <input type="text" id="question-input" placeholder="Type your question here..."
+                                class="text-lg p-2 rounded-lg border border-gray-300 bg-gray-100 cursor-text">
+                            <input type="submit" value="Ask Question"
+                                class="mt-4 p-2 rounded-lg bg-blue-500 hover:bg-blue-400 text-white cursor-pointer">
+                        </form>
+                    </div>
+
+                    <h2 class="text-2xl font-semibold mt-8">The LLM's Response</h2>
+                    <p id="model-response" class="text-lg mt-2">Nothing yet :(</p>
+                </div>
+
+                <script>
+                    const askForm = document.getElementById("ask-form");
+                    const modelResponse = document.getElementById("model-response");
+                    const questionInput = document.getElementById("question-input");
+
+                    askForm.addEventListener("submit", async (e) => {
+                        e.preventDefault();
+                        modelResponse.innerText = "Thinking...";
+
+                        const formData = new FormData();
+                        formData.append("question", questionInput.value);
+
+                        try {
+                            const response = await fetch("/ask", {
+                                method: "POST",
+                                body: formData
+                            });
+                            const payload = await response.json();
+
+                            if (payload.success) {
+                                modelResponse.innerText = payload.answer;
+                            }
+                            else {
+                                modelResponse.innerText = `Error: ${payload.error}`;
+                            }
+                        }
+                        catch (err) {
+                            modelResponse.innerText = `Error: ${err.message}`;
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+
+    </div>
 </body>
 
 </html>
