@@ -8,13 +8,20 @@
 
 <body class="bg-gray-100">
     <div class="flex flex-col min-h-screen">
-        <div class="flex justify-center mt-4">
+
+        <!-- Header-->
+        <header class="flex justify-center mt-4">
             <h1 class="text-3xl text-center font-semibold bg-white border border-gray-300 p-2 rounded-xl w-3/5">
                 OpenAI RAG DBQA
             </h1>
-        </div>
-        <div class="flex mt-8">
+        </header>
+
+        <main class="flex mt-8">
+
+            <!-- File upload panel -->
             <div class="w-2/5 flex flex-col items-start">
+
+                <!-- Upload form -->
                 <div class="rounded-lg border border-gray-300 bg-white p-4 w-4/5 h-fit mx-auto">
                     <h2 class="text-2xl font-semibold">Upload Document</h2>
                     <span class="text-lg mt-1">Select a file to get started.</span>
@@ -26,51 +33,21 @@
                             class="mt-4 p-2 rounded-lg border bg-blue-500 hover:bg-blue-400 text-white cursor-pointer">
                     </form>
                 </div>
+
+                <!-- Upload status -->
                 <div class="rounded-lg border border-gray-300 bg-white p-4 w-4/5 h-fit mx-auto mt-8">
                     <h2 class="text-2xl font-semibold">Upload Status</h2>
                     <span id="upload-status-text" class="text-lg mt-2">No file uploaded.</span>
                 </div>
-                <script>
-                    const uploadForm = document.getElementById("upload-form");
-                    const fileInput = document.getElementById("file-input");
-                    const uploadStatusText = document.getElementById("upload-status-text");
-
-                    uploadForm.addEventListener("submit", async (e) => {
-                        e.preventDefault();
-
-                        const file = fileInput.files[0];
-                        if (!file) {
-                            uploadStatusText.innerText = "Please select a file to upload.";
-                            return;
-                        }
-                        uploadStatusText.innerText = `Uploading "${file.name}"...`;
-
-                        const formData = new FormData();
-                        formData.append("pdf", file);
-
-                        try {
-                            const response = await fetch("/upload", {
-                                method: "POST",
-                                body: formData
-                            });
-                            const payload = await response.json();
-
-                            if (payload.success) {
-                                uploadStatusText.innerText = `“${file.name}” uploaded successfully.`;
-                            }
-                            else {
-                                uploadStatusText.innerText = `Upload failed: ${payload.error}`;
-                            }
-                        }
-                        catch (err) {
-                            uploadStatusText.innerText = `Upload failed: ${err.message}`;
-                        }
-                    });
-                </script>
             </div>
 
-            <div class="w-3/5">
+            <!-- Question answering panel -->
+            <div class="w-3/5 flex flex-col">
+
+                <!-- Display box -->
                 <div class="rounded-lg border border-gray-300 bg-white p-4 w-4/5 flex flex-col">
+
+                    <!-- Question submission form -->
                     <h2 class="text-2xl font-semibold">Submit a Question</h2>
                     <div class="w-full justify-center flex mt-4">
                         <form id="ask-form" class="flex flex-col w-full">
@@ -81,45 +58,95 @@
                         </form>
                     </div>
 
-                    <h2 class="text-2xl font-semibold mt-8">The LLM's Response</h2>
-                    <p id="model-response" class="text-lg mt-2">Nothing yet :(</p>
+                    <!-- Model dialogue -->
+                    <div>
+                        <h2 class="text-2xl font-semibold mt-8">The LLM's Response</h2>
+                        <p id="model-response" class="text-lg mt-2">Nothing yet :(</p>
+                    </div>
                 </div>
-
-                <script>
-                    const askForm = document.getElementById("ask-form");
-                    const modelResponse = document.getElementById("model-response");
-                    const questionInput = document.getElementById("question-input");
-
-                    askForm.addEventListener("submit", async (e) => {
-                        e.preventDefault();
-                        modelResponse.innerText = "Thinking...";
-
-                        const formData = new FormData();
-                        formData.append("question", questionInput.value);
-
-                        try {
-                            const response = await fetch("/ask", {
-                                method: "POST",
-                                body: formData
-                            });
-                            const payload = await response.json();
-
-                            if (payload.success) {
-                                modelResponse.innerText = payload.answer;
-                            }
-                            else {
-                                modelResponse.innerText = `Error: ${payload.error}`;
-                            }
-                        }
-                        catch (err) {
-                            modelResponse.innerText = `Error: ${err.message}`;
-                        }
-                    });
-                </script>
             </div>
-        </div>
-
+        </main>
     </div>
+
+    <!-- Scripts -->
+    <script>
+
+        // Helper function for updating an element's display text, done for clarity
+        const updateText = (element, message) => {
+            element.textContent = message;
+        };
+
+        // File upload logic
+        const uploadForm = document.getElementById("upload-form");
+        const fileInput = document.getElementById("file-input");
+        const uploadStatusText = document.getElementById("upload-status-text");
+
+        uploadForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            // Validate uploaded file
+            const file = fileInput.files[0];
+            if (!file) {
+                updateText(uploadStatusText, "Please select a file to upload.");
+                return;
+            }
+            updateText(uploadStatusText, `Uploading "${file.name}"...`);
+
+            // Build form data
+            const formData = new FormData();
+            formData.append("pdf", file);
+
+            try {
+                const response = await fetch("/upload", {
+                    method: "POST",
+                    body: formData
+                });
+                const payload = await response.json();
+
+                if (payload.success) {
+                    updateText(uploadStatusText, `“${file.name}” uploaded successfully.`);
+                }
+                else {
+                    updateText(uploadStatusText, `Upload failed: ${payload.error}`);
+                }
+            }
+            catch (err) {
+                updateText(uploadStatusText, `Upload failed: ${err.message}`);
+            }
+        });
+
+        // Question answering logic
+        const askForm = document.getElementById("ask-form");
+        const modelResponse = document.getElementById("model-response");
+        const questionInput = document.getElementById("question-input");
+
+        askForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            updateText(modelResponse, "Thinking...");
+
+            // Build form data
+            const formData = new FormData();
+            formData.append("question", questionInput.value);
+
+            try {
+                const response = await fetch("/ask", {
+                    method: "POST",
+                    body: formData
+                });
+                const payload = await response.json();
+
+                if (payload.success) {
+                    updateText(modelResponse, payload.answer);
+                }
+                else {
+                    updateText(modelResponse, `Error: ${payload.error}`);
+                }
+            }
+            catch (err) {
+                updateText(modelResponse, `Error: ${err.message}`);
+            }
+        });
+    </script>
 </body>
 
 </html>
