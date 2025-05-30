@@ -1,3 +1,4 @@
+# OpenAI RAG DBQA
 A minimal Flask web app for document-based question answering (DBQA) over uploaded PDFs, using retrieval-augmented generation (RAG) powered by OpenAI's Responses and GPT-4o-mini. Automate information search by uploading your PDF documents, asking questions about their content, and receiving natural language responses from an LLM.
 
 ## Features
